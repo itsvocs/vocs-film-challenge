@@ -8,20 +8,23 @@ export async function middleware(request: NextRequest) {
   if (!session) {
     console.log("session not found");
     return NextResponse.redirect(
-      `http://localhost:3000/auth/signIn?returnUrl=${returnUrl}`
+      `https://vocs-film-challenge.vercel.app/auth/signIn?returnUrl=${returnUrl}`
     );
   }
 
-  const responseApi = await fetch("http://localhost:3000/api/auth/login", {
-    headers: {
-      Cookie: `session=${session?.value}`,
-    },
-  });
+  const responseApi = await fetch(
+    "https://vocs-film-challenge.vercel.app/api/auth/login",
+    {
+      headers: {
+        Cookie: `session=${session?.value}`,
+      },
+    }
+  );
 
   if (responseApi.status !== 200) {
     console.log("token is not authorized");
     return NextResponse.redirect(
-      `http://localhost:3000/auth/signIn?returnUrl=${returnUrl}`
+      `https://vocs-film-challenge.vercel.app/auth/signIn?returnUrl=${returnUrl}`
     );
   }
 
