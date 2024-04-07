@@ -123,7 +123,7 @@ export default function Rattings({ film }: ReviewProps) {
     }
   };
   const formatDate = (date: Date) => {
-    const options = {
+    const options: Intl.DateTimeFormatOptions = {
       year: "numeric",
       month: "2-digit",
       day: "2-digit",
