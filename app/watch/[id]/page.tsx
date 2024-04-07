@@ -37,7 +37,7 @@ export default function Page({ params }: { params: { id: string } }) {
     return <div>Loading...</div>;
   }
   return (
-    <div>
+    <div className="min-h-screen w-full bg-dot-white/[0.03] relative overflow-hidden flex-col pb-24">
       <Hero
         title={film.title}
         image={film.imageString}

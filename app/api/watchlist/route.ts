@@ -31,8 +31,6 @@ export async function GET(request: NextRequest, response: NextResponse) {
       // Ajoutez l'ID du film à la watchlist
       watchlist.push(doc.id);
     });
-    console.log(watchlist);
-
     // Retournez la watchlist de l'utilisateur
     return NextResponse.json({ watchlist }, { status: 200 });
   } catch (error) {

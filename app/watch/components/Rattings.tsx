@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { auth } from "@/firebase/client/config";
 import { toast } from "sonner";
 import { DocumentData, Timestamp } from "firebase/firestore";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 
 type ReviewProps = {
   film: DocumentData;
@@ -29,20 +29,20 @@ export default function Rattings({ film }: ReviewProps) {
   const [reviews, setReviews] = useState<DocumentData>([]);
 
   const router = useRouter();
+  const pathname = usePathname();
 
   useEffect(() => {
     const getReviews = async () => {
       try {
         const reviewsData = await fetchFilmReviews(film.id);
         setReviews(reviewsData);
-        console.log(reviewsData);
       } catch (error) {
         console.error("Error fetching film reviews:", error);
       }
     };
 
     getReviews();
-  }, [film]); // Cette dépendance garantit que useEffect est exécuté à chaque changement de filmId
+  }, [film]);
 
   async function fetchFilmReviews(filmId: string) {
     const response = await fetch(`/api/reviews?filmId=${filmId}`);
@@ -74,8 +74,8 @@ export default function Rattings({ film }: ReviewProps) {
           }),
         });
         if (response.ok) {
-          toast.success("Comment added successfully");
-          router.refresh();
+          toast.success("Der Kommentar wurde gespeichert");
+          router.push(pathname);
         } else {
           toast.error("Failed to add comment");
         }
@@ -88,9 +88,53 @@ export default function Rattings({ film }: ReviewProps) {
     }
   };
 
+  const handleDeleteComment = async (filmId: string, userId: string) => {
+    try {
+      const response = await fetch("/api/reviews", {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ filmId, userId }),
+      });
+
+      if (response.ok) {
+        router.push(pathname);
+        router.refresh();
+        toast.success("Comment deleted successfully");
+        // Mettre à jour l'état de votre composant si nécessaire
+      } else {
+        throw new Error("Failed to delete comment");
+      }
+    } catch (error) {
+      console.error("Error deleting comment:", error);
+      // Gérer les erreurs si nécessaire
+    }
+  };
+  const handleDelete = async () => {
+    const filmId = film.id;
+    const userId = user?.uid ? user.uid : "";
+    try {
+      await handleDeleteComment(filmId, userId);
+      // Mettre à jour l'état ou effectuer d'autres actions après la suppression du commentaire
+    } catch (error) {
+      console.error("Error deleting comment:", error);
+      // Gérer les erreurs si nécessaire
+    }
+  };
+  const formatDate = (date: Date) => {
+    const options = {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+    };
+    return new Intl.DateTimeFormat("fr-FR", options).format(date);
+  };
   return (
-    <div className="px-4  w-full items-center sm:max-w-full  py-4 sm:px-8 sm:py-6 grid grid-cols-12 gap-x-16 lg:px-8 lg:py-24">
-      <div className="md:col-span-4 col-span-12 flex flex-col">
+    <div className="px-4 mt-5">
+      <div className=" flex flex-col">
         <h2 className="text-2xl font-bold tracking-tight text-foreground">
           Kundenbewertungen
         </h2>
@@ -102,7 +146,7 @@ export default function Rattings({ film }: ReviewProps) {
                 <span
                   key={index}
                   className={` ${
-                    starValue <= 3 ? "text-foreground" : "text-muted"
+                    starValue <= film.ratting ? "text-foreground" : "text-muted"
                   } focus:outline-none`}>
                   <PiStarFill className="h-5 w-5" />
                 </span>
@@ -110,57 +154,8 @@ export default function Rattings({ film }: ReviewProps) {
             })}
           </div>
           <p className="text-sm text-muted-foreground">
-            Basierend auf 1624 Bewertungen
+            Basierend auf {reviews.length} Bewertungen
           </p>
-        </div>
-        <div className="mt-6">
-          <div className="m-0 space-y-3">
-            <div className="flex items-center text-sm">
-              <div className="flex flex-1 items-center">
-                <p>5</p>
-                <div className="flex ml-3 flex-1 items-center">
-                  <PiStarFill className="h-5 w-5" />
-                  <Progress value={66} className="flex-1 ml-3 relative" />
-                </div>
-              </div>
-            </div>
-            <div className="flex items-center text-sm">
-              <div className="flex flex-1 mr-1 items-center">
-                <p>4</p>
-                <div className="flex ml-3 flex-1 items-center">
-                  <PiStarFill className="h-5 w-5" />
-                  <Progress value={0} className="flex-1 ml-3 relative" />
-                </div>
-              </div>
-            </div>
-            <div className="flex items-center text-sm">
-              <div className="flex flex-1 mr-1 items-center">
-                <p>3</p>
-                <div className="flex ml-3 flex-1 items-center">
-                  <PiStarFill className="h-5 w-5" />
-                  <Progress value={35} className="flex-1 ml-3 relative" />
-                </div>
-              </div>
-            </div>
-            <div className="flex items-center text-sm">
-              <div className="flex mr-1 flex-1 items-center">
-                <p>2</p>
-                <div className="flex ml-3 flex-1 items-center">
-                  <PiStarFill className="h-5 w-5" />
-                  <Progress value={15} className="flex-1 ml-3 relative" />
-                </div>
-              </div>
-            </div>
-            <div className="flex items-center text-sm">
-              <div className="flex flex-1 mr-1 items-center">
-                <p>1</p>
-                <div className="flex ml-3 flex-1 items-center">
-                  <PiStarFill className="h-5 w-5" />
-                  <Progress value={5} className="flex-1 ml-3 relative" />
-                </div>
-              </div>
-            </div>
-          </div>
         </div>
         <h2 className="pt-8 pb-2 text-xl">Teile deine Gedanken</h2>
         <p className="text-sm text-muted-foreground">
@@ -210,26 +205,37 @@ export default function Rattings({ film }: ReviewProps) {
           </div>
         )}
       </div>
-      <div className="md:col-span-8 col-span-12">
+      <div className="">
         <div className="flow-root items-center">
           {reviews.length === 0 && (
             <Button
-              variant="ghost"
+              variant="link"
               className="w-full flex"
               onClick={() => setIsRev(true)}>
               Keine Bewertungen, Sein Sie der ersten
             </Button>
           )}
           {reviews.map((review: ReviewInterface) => (
-            <div key={review.id} className="my-6">
+            <div key={review.id} className="my-8">
               <div className="flex items-center">
                 <img
                   className="w-12 h-12 rounded-full"
                   src={`https://api.dicebear.com/8.x/avataaars-neutral/svg?seed=${review.email}&radius=10&mouth=smile&eyes=squint,surprised,wink,default`}
                   alt="img"
                 />
-                <div className="ml-4">
-                  <h4 className="font-bold text-sm"> {review.email} </h4>
+                <div className="ml-4 space-y-2">
+                  <h4 className="font-bold text-sm">
+                    {" "}
+                    {review.email}{" "}
+                    {user?.uid === review.userId && (
+                      <Button
+                        className="text-red-600"
+                        variant="link"
+                        onClick={handleDelete}>
+                        löschen
+                      </Button>
+                    )}
+                  </h4>
                   <div className="flex items-center">
                     {[...Array(5)].map((_, index) => {
                       const starValue = index + 1;
@@ -252,6 +258,9 @@ export default function Rattings({ film }: ReviewProps) {
                 <p className="text-sm text-muted-foreground">
                   {review.comment}
                 </p>
+                <div className="text-sm text-muted pt-2">
+                  {formatDate(new Date(review.timestamp.seconds * 1000))}
+                </div>
               </div>
             </div>
           ))}

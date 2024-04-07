@@ -195,7 +195,7 @@ export default function NavBar() {
                   </DropdownMenuContent>
                 </DropdownMenu>
               </SheetHeader>
-              <div className="flex w-full flex-col space-y-4 my-8">
+              <div className="flex w-full flex-col space-y-8 my-8">
                 {nav.map((item) => (
                   <Link
                     key={item.name}
@@ -208,11 +208,6 @@ export default function NavBar() {
                   </Link>
                 ))}
               </div>
-              <SheetFooter>
-                <SheetClose asChild>
-                  <Button type="submit">Save changes</Button>
-                </SheetClose>
-              </SheetFooter>
             </SheetContent>
           </Sheet>
         </div>

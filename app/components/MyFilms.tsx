@@ -15,7 +15,8 @@ import { auth, db } from "@/firebase/client/config";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { PiPlusCircleBold } from "react-icons/pi";
+import { FaPlus } from "react-icons/fa6";
+import { HiOutlineXMark } from "react-icons/hi2";
 export function MyFilms() {
   const [films, setFilms] = useState<DocumentData>([]);
   const [loading, setLoading] = useState(true);
@@ -80,7 +81,18 @@ export function MyFilms() {
           {films.map((i: DocumentData) => (
             <CarouselItem
               key={i.id}
-              className="pl-4 basis-1/2 sm:basis-1/3 md:basis-[30%] lg:basis-[25%] xl:basis-[20%]">
+              className="pl-4 basis-1/2 sm:basis-1/3 md:basis-[30%] lg:basis-[25%] xl:basis-[20%] relative">
+              <Button
+                onClick={() => {
+                  console.log(i.id);
+
+                  handleDeleteFilm(i.id);
+                }}
+                className="absolute text-xl rounded-full bg-red-950/80 text-red-100 z-50 -right-4 top-0 h-12 w-12"
+                variant="destructive"
+                size="icon">
+                <HiOutlineXMark />
+              </Button>
               <div className="p-1">
                 <CardFilm
                   title={i.title}
@@ -92,30 +104,24 @@ export function MyFilms() {
                   id={i.id}
                 />
               </div>
-              <Button
-                onClick={() => {
-                  console.log(i.id);
-
-                  handleDeleteFilm(i.id);
-                }}
-                className="flex w-full bg-red-500"
-                variant="destructive">
-                Löschen
-              </Button>
             </CarouselItem>
           ))}
-          <CarouselItem className="pl-4 basis-1/2 sm:basis-1/3 relative md:basis-[30%] lg:basis-[25%] xl:basis-[20%]">
+          <CarouselItem className="pl-4 basis-1/2 sm:basis-1/3 relative md:basis-[30%] lg:basis-[25%] xl:basis-[20%] flex items-center justify-center">
             <Button
               variant="secondary"
-              className=" h-[19rem] w-[300px] rounded-xl"
+              className=" h-[10rem] w-[10rem] rounded-full "
               onClick={() => router.push("/create")}>
-              <PiPlusCircleBold className="w-32 h-32 " />
+              <FaPlus className="w-24 h-24 " />
             </Button>
             <div className="space-y-2"></div>
           </CarouselItem>
         </CarouselContent>
-        <CarouselPrevious />
-        <CarouselNext />
+        {films.length > 0 && (
+          <>
+            <CarouselPrevious />
+            <CarouselNext />
+          </>
+        )}
       </Carousel>
     </div>
   );

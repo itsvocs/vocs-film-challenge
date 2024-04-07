@@ -26,6 +26,9 @@ const Rating = ({ initialValue, isChanged, time, age }: ValueProps) => {
           );
         })}
       </div>
+      <span>
+        {Number.isNaN(Math.floor(initialValue)) ? 0 : Math.floor(initialValue)}
+      </span>
       <span>{time}</span>
       <span className="bg-indigo-600 rounded-sm p-1 py-px text-xs">{age}</span>
     </div>

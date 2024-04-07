@@ -18,7 +18,6 @@ export default function Detail({ film }: DetailProps) {
             time={film.duration}
             age={film.age}
           />
-          <p>{film.ratting}</p>
         </div>
       </div>
       <div>

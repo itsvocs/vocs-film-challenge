@@ -23,49 +23,50 @@ export function WatchList() {
 
   useEffect(() => {
     const fetchWatchlistAndFilms = async () => {
-      if (user) {
-        try {
-          // Récupérer la watchlist de l'utilisateur
+      try {
+        // Récupérer la watchlist de l'utilisateur
+        if (user) {
           const userId = user.uid;
           const watchlist = await getWatchlist(userId);
 
-          if (watchlist.length > 0) {
-            const filmsData: DocumentData[] = [];
-
-            for (const filmId of watchlist) {
+          setLoading(false); // Utiliser Promise.all avec une fonction de mapping pour récupérer les films en parallèle
+          const filmsData = await Promise.all(
+            watchlist.map(async (filmId: string) => {
               const film = await getFilmById(filmId);
-              filmsData.push(film);
-            }
-            setLoading(false);
-            setFilms(filmsData);
-          }
-        } catch (error) {
-          console.error("Error fetching watchlist or films:", error);
-        } finally {
+              return film;
+            })
+          );
+
           setLoading(false);
+          setFilms(filmsData);
+        } else {
+          // Aucun film dans la watchlist
+          setFilms([]);
         }
+      } catch (error) {
+        console.error("Error fetching watchlist or films:", error);
+        setLoading(false);
       }
     };
 
     fetchWatchlistAndFilms();
   }, [user]);
-
   return (
     <div className="mt-6">
-      <Carousel className="w-full max-w-full relative">
-        <CarouselContent className="-ml-1">
-          {loading &&
-            Array.from({ length: 10 }, (_, i) => (
-              <CarouselItem
-                key={i}
-                className="pl-4 basis-1/2 sm:basis-1/3 md:basis-[30%] lg:basis-[25%] xl:basis-[20%]">
-                <Skeleton className="h-[19rem] w-[300px] rounded-xl" />
-                <div className="space-y-2"></div>
-              </CarouselItem>
-            ))}
+      {films.length > 0 ? (
+        <Carousel className="w-full max-w-full relative">
+          <CarouselContent className="-ml-1">
+            {loading &&
+              Array.from({ length: 10 }, (_, i) => (
+                <CarouselItem
+                  key={i}
+                  className="pl-4 basis-1/2 sm:basis-1/3 md:basis-[30%] lg:basis-[25%] xl:basis-[20%]">
+                  <Skeleton className="h-[19rem] w-[300px] rounded-xl m-4" />
+                  <div className="space-y-2"></div>
+                </CarouselItem>
+              ))}
 
-          {films.length > 0 ? (
-            films.map((i: DocumentData) => (
+            {films.map((i: DocumentData) => (
               <CarouselItem
                 key={i.id}
                 className="pl-4 basis-1/2 sm:basis-1/3 md:basis-[30%] lg:basis-[25%] xl:basis-[20%]">
@@ -81,14 +82,16 @@ export function WatchList() {
                   />
                 </div>
               </CarouselItem>
-            ))
-          ) : (
-            <div className="text-center text-2xl px-10">Noch Keine</div>
-          )}
-        </CarouselContent>
-        <CarouselPrevious />
-        <CarouselNext />
-      </Carousel>
+            ))}
+          </CarouselContent>
+          <CarouselPrevious />
+          <CarouselNext />
+        </Carousel>
+      ) : (
+        <div className="w-full flex items-center justify-center text-sm">
+          Keine Filme in der Watchlist
+        </div>
+      )}
     </div>
   );
 }

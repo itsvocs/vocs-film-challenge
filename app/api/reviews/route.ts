@@ -2,6 +2,7 @@ import { auth, db } from "@/firebase/client/config";
 import {
   addDoc,
   collection,
+  deleteDoc,
   doc,
   DocumentData,
   getDocs,
@@ -89,6 +90,52 @@ export async function POST(request: NextRequest) {
     console.log("Erreur lors de l'ajout commentaire :", error);
     return NextResponse.json(
       { error: "Erreur lors de l'ajout commentaire" },
+      { status: 500 }
+    );
+  }
+}
+
+export async function DELETE(request: NextRequest) {
+  try {
+    const { filmId, userId } = await request.json();
+
+    if (!filmId || !userId) {
+      return NextResponse.json(
+        { message: "Film ID and user ID are required" },
+        { status: 400 }
+      );
+    }
+
+    const reviewsRef = collection(db, `films/${filmId}/reviews`);
+
+    // Supprimer le commentaire de l'utilisateur
+    await deleteDoc(doc(reviewsRef, userId));
+
+    // Recalculer la note de rating général du document
+    const ratingsSnapshot = await getDocs(reviewsRef);
+    let totalRating = 0;
+    let totalRatingsCount = 0;
+
+    ratingsSnapshot.forEach((doc) => {
+      const rating = doc.data().rating;
+      totalRating += rating;
+      totalRatingsCount++;
+    });
+
+    // Mettre à jour la note de rating général du document "film"
+    const newRating =
+      totalRatingsCount > 0 ? totalRating / totalRatingsCount : 0;
+    const filmRef = doc(db, `films/${filmId}`);
+    await updateDoc(filmRef, { ratting: newRating });
+
+    return NextResponse.json(
+      { message: "Le commentaire a été supprimé avec succès" },
+      { status: 200 }
+    );
+  } catch (error) {
+    console.log("Erreur lors de la suppression du commentaire :", error);
+    return NextResponse.json(
+      { error: "Erreur lors de la suppression du commentaire" },
       { status: 500 }
     );
   }
